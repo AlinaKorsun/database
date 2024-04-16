@@ -1,0 +1,199 @@
+create database excursion
+use excursion
+
+create table Excursions
+(
+id int primary key identity(1,1),
+date varchar(10) not null,
+duration varchar (30),
+destination varchar (30),
+distance varchar (30),
+numberOfTourists int,
+cost int,
+idCustomer int not null,
+idBus int not null,
+idType int not null
+)
+
+create table Bus
+(
+id int primary key identity(1,1),
+capacity int,
+consumption float,
+workingDays varchar (100)
+)
+
+create table Driver
+(
+id int primary key identity(1,1),
+name varchar (30)
+)
+
+
+create table Invoice
+(
+id int primary key identity(1,1),
+idExcursions int not null,
+idCustomer int not null,
+date varchar (10),
+cost int,
+status varchar (30)
+)
+
+create table Customer
+(
+id int primary key identity (1,1),
+name varchar (30),
+)
+
+create table Payments
+(
+id int primary key identity(1,1),
+idInvoice int not null,
+dateOfPayment date,
+status varchar (30),
+sum float
+)
+
+
+create table Type
+(
+id int primary key identity(1,1),
+name varchar (30) 
+)
+
+
+create table BusType
+(
+idBus int not null,
+idType int not null,
+primary key(idBus, idType)
+)
+
+
+
+create table ExcursionsDriver
+(
+idExcursions int not null,
+idDriver int not null,
+primary key(idExcursions, idDriver)
+)
+
+alter table Excursions
+add constraint FK_ExcursionsType foreign key (idType)
+references Type(id)
+
+alter table Excursions
+add constraint FK_ExcursionsCustomer foreign key (idCustomer)
+references Customer(id)
+
+alter table ExcursionsDriver
+add constraint FK_ExcursionsExcursionsDriver foreign key (idExcursions)
+references Excursions(id)
+
+alter table ExcursionsDriver
+add constraint FK_DriverExcursionsDriver foreign key (idDriver)
+references Driver(id)
+
+alter table Invoice
+add constraint FK_InvoiceExcursions foreign key (idExcursions)
+references Excursions(id)
+
+alter table Excursions
+add constraint FK_ExcursionsBus foreign key (idBus)
+references Bus(id)
+
+alter table Payments
+add constraint FK_PaymentsInvoice foreign key (idInvoice)
+references Invoice(id)
+
+alter table Invoice
+add constraint FK_InvoiceCustomer foreign key (idCustomer)
+references Customer(id)
+
+alter table BusType
+add constraint FK_BusBusType foreign key (idBus)
+references Bus(id)
+
+alter table BusType
+add constraint FK_TypeBusType foreign key (idType)
+references Type(id)
+
+use excursion
+
+INSERT INTO Excursions(date, duration, destination, distance, numberOfTourists, cost, idBus, idCustomer, idType)
+VALUES 
+    ('10.10.2024', '1h', 'destination1', '10km', 15, 100, 1, 1, 1),
+    ('09.09.2024', '2h', 'destination2', '20km', 20, 200, 2, 2, 2),
+    ('08.08.2024', '2h', 'destination3', '25km', 20, 300, 2, 3, 2),
+    ('07.07.2024', '1h', 'destination4', '20km', 20, 300, 4, 4, 4);
+
+SELECT * FROM Excursions;
+
+
+
+INSERT INTO Bus(capacity,consumption, workingDays)
+VALUES 
+    (30, 100,'day1,day2,day3'),
+	(30, 100, 'day1,day2,day3'),
+	(50, 150, 'day1,day2,day3'),
+	(50, 150, 'day1,day2,day3');
+    SELECT * FROM Bus;
+
+	INSERT INTO Driver(name)
+VALUES 
+    ('name1'),
+	('name2'),
+	('name3'),
+	('name4');
+    	SELECT * FROM Driver;
+
+	INSERT INTO Invoice ( idExcursions, idCustomer, date, cost, status)
+VALUES 
+    ( 2, 1, '06.06.2024', 200, 'unpaid'),
+	( 3, 2, '07.07.2024', 250, 'paid'),
+	( 4, 3, '05.05.2024', 300, 'unpaid'),
+	( 5, 4, '04.04.2024', 400, 'paid');
+    	SELECT * FROM Invoice;
+		
+
+	INSERT INTO Customer(name)
+VALUES 
+    ('name1'),
+	('name2'),
+    ('name3'),
+	('name4');
+    	SELECT * FROM Customer;
+
+		INSERT INTO Payments (idInvoice, dateOfPayment, status, sum)
+VALUES 
+    (5, '08.12.2023', 'paid', 200),
+	(6, '04.11.2023', 'paid', 200),
+    (5, '08.10.2023', 'unpaid', 200),
+	(4, '08.11.2023', 'unpaid', 200);
+    	SELECT * FROM Payments;
+
+
+		INSERT INTO Type (name)
+VALUES 
+    ('name1'),
+	('name2'),
+    ('name3'),
+	('name4');
+    	SELECT * FROM Type;
+
+	INSERT INTO BusType(idBus, idType)
+VALUES 
+    (1, 3),
+	(2, 4),
+    (1, 4),
+	(2, 3);
+    	SELECT * FROM BusType;
+
+		INSERT INTO ExcursionsDriver(idExcursions, idDriver)
+VALUES 
+    (4, 2),
+	(5, 3),
+    (6, 4),
+	(7, 1);
+    	SELECT * FROM ExcursionsDriver;
