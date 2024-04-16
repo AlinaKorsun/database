@@ -1,0 +1,66 @@
+use excursion
+
+SELECT *
+FROM Excursions
+WHERE (cost < 300 OR distance = '25km')
+  AND numberOfTourists > 10
+ORDER BY id;
+
+SELECT SUM(cost) AS total_cost
+FROM Invoice;
+
+SELECT Excursions.distance, Excursions.duration, Bus.consumption
+FROM Excursions
+JOIN Bus ON Excursions.idBus = Bus.id
+WHERE (Excursions.duration = '1h' OR Bus.consumption = 100)
+  AND Excursions.distance = '20km'
+ORDER BY Excursions.duration;
+
+SELECT Customer.name, Invoice.status
+FROM Customer
+LEFT OUTER JOIN Invoice ON Customer.id = Invoice.idCustomer;
+
+SELECT * FROM Driver WHERE name LIKE 'name1';
+
+SELECT * FROM Payments WHERE dateOfPayment BETWEEN '08.12.2023' AND '08.12.2024';
+
+SELECT * FROM Driver WHERE name IN ('name1', 'name2', 'name 45');
+
+SELECT *
+FROM Customer
+WHERE id IN (
+    SELECT idCustomer
+    FROM Invoice
+    GROUP BY idCustomer
+    HAVING SUM(cost) > (
+        SELECT AVG(cost)
+        FROM Invoice
+    )
+);
+
+SELECT consumption, capacity
+FROM (
+    SELECT consumption, capacity 
+    FROM Bus
+    WHERE capacity BETWEEN 20 AND 40
+) AS subquery
+WHERE consumption<200;
+
+
+SELECT
+    status,
+    SUM(CASE WHEN dateOfPayment = '08.12.2023' THEN sum ELSE 0 END) AS December,
+    SUM(CASE WHEN dateOfPayment = '04.11.2023' THEN sum ELSE 0 END) AS November,
+    SUM(CASE WHEN dateOfPayment = '08.10.2023' THEN sum ELSE 0 END) AS October
+FROM Payments
+GROUP BY status;
+
+UPDATE Type
+SET name = 'name8' 
+WHERE id = 1;
+
+UPDATE Excursions
+SET Excursions.cost = 500
+FROM Excursions
+JOIN Invoice ON Excursions.id = Invoice.idExcursions
+WHERE Excursions.duration = '2h';
