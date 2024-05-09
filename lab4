@@ -1,0 +1,59 @@
+CREATE TRIGGER CheckBusSchedule
+ON Excursions
+FOR INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT e1.idBus, e1.date
+        FROM inserted e1
+        INNER JOIN Excursions e2 ON e1.idBus = e2.idBus
+        WHERE e1.date = e2.date AND e1.id != e2.id
+    )
+    BEGIN
+        RAISERROR ('This bus is already scheduled for another excursion at the same time.', 16, 1)
+        ROLLBACK TRANSACTION
+    END
+END
+
+
+CREATE TRIGGER CheckBusCapacityForExcursion
+ON Excursions
+FOR INSERT, UPDATE
+AS
+BEGIN
+    DECLARE @busCapacity INT
+
+    SELECT @busCapacity = b.capacity
+    FROM Bus b
+    INNER JOIN inserted i ON b.id = i.idBus
+
+    IF EXISTS (
+        SELECT i.id, i.numberOfTourists
+        FROM inserted i
+        WHERE i.numberOfTourists > @busCapacity
+    )
+    BEGIN
+        RAISERROR ('Bus capacity is not sufficient for the excursion.', 16, 1)
+        ROLLBACK TRANSACTION
+    END
+END
+
+
+CREATE TRIGGER CheckCustomerDebt
+ON Excursions
+FOR INSERT, UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT i.idCustomer
+        FROM inserted i
+        INNER JOIN Customer c ON i.idCustomer = c.id
+        LEFT JOIN Invoice inv ON i.id = inv.idExcursions
+        LEFT JOIN Payments p ON inv.id = p.idInvoice
+        WHERE DATEDIFF(day, inv.date, GETDATE()) > 30 AND p.status IS NULL
+    )
+    BEGIN
+        RAISERROR ('The customer has unpaid debts for over 30 days.', 16, 1)
+        ROLLBACK TRANSACTION
+    END
+END
