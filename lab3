@@ -1,0 +1,72 @@
+CREATE PROCEDURE PaymentsForMonths
+    @customerId INT,
+    @month VARCHAR(7) -- Формат 'MM/YYYY'
+AS
+BEGIN
+    DECLARE @totalCost INT
+
+    -- Перевіряємо, чи є записи у таблиці Invoice для вказаного замовника та місяця
+    IF EXISTS (SELECT 1 FROM Invoice WHERE idCustomer = @customerId AND date LIKE '%' + @month + '%')
+    BEGIN
+        -- Обчислюємо загальну вартість екскурсій для заданого місяця і замовника
+        SELECT @totalCost = MAX(cost)
+        FROM Invoice
+        WHERE idCustomer = @customerId AND date LIKE '%' + @month + '%'
+
+        -- Внесення запису про оплату
+        INSERT INTO Payments (idInvoice, dateOfPayment, [status], [sum])
+        VALUES (
+            (SELECT TOP 1 id FROM Invoice WHERE idCustomer = @customerId AND date LIKE '%' + @month + '%'),
+            GETDATE(),
+            'unpaid',
+            @totalCost
+        )
+
+        -- Вивід значення totalCost
+       PRINT 'Customer id: ' + CAST(@customerId AS VARCHAR(10));
+	   PRINT 'Total revenue for customer: ' + CAST(@totalCost AS VARCHAR(10));
+
+    END
+    ELSE
+    BEGIN
+        -- Якщо записи відсутні, виводимо повідомлення про це
+        PRINT 'No invoices found for the specified customer and month.';
+    END
+END
+
+
+
+EXEC PaymentsForMonths @customerId = 1, @month = '06.2024';
+
+
+
+-- PaymentForAllCustomers
+
+   CREATE PROCEDURE SmmForAllCustomers
+    @selectedMonth INT, -- Користувацький вибір місяця (число від 1 до 12)
+    @year INT -- Рік
+AS
+BEGIN
+    DECLARE @totalRevenue INT = 0 -- Змінна для зберігання загальної суми
+
+    -- Обчислюємо загальну суму оплати для всіх клієнтів за вказаний місяць
+    SELECT @totalRevenue = SUM([sum])
+    FROM Payments
+    WHERE MONTH(dateOfPayment) = @selectedMonth
+    AND YEAR(dateOfPayment) = @year
+
+    -- Виводимо загальну суму доходу або повідомлення про відсутність даних
+    IF @totalRevenue IS NULL
+    BEGIN
+        PRINT 'No revenue data available for the specified month and year.'
+    END
+    ELSE
+    BEGIN
+        PRINT 'Total revenue for all customers in month ' + CAST(@selectedMonth AS VARCHAR(2)) + '/' + CAST(@year AS VARCHAR(4)) + ': ' + CAST(@totalRevenue AS VARCHAR(10))
+    END
+END
+
+
+
+
+EXEC SmmForAllCustomers @selectedMonth = 4, @year = 2024;
